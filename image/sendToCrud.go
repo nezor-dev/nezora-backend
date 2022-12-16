@@ -106,9 +106,8 @@ func main() {
 func getBase64ofFolderImages_PDF() string {
 	var strArray []string
 
-	for _, file := range extractFileNamesFromCurrentFolder(fileext) {
-		strArray = append(strArray, file)
-	}
+	strArray = append(strArray, extractFileNamesFromCurrentFolder(fileext)...)
+
 	var base64 = ConvertImageToPDF_BASE64(strArray)
 	return base64
 }
