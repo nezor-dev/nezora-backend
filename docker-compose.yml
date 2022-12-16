@@ -1,0 +1,31 @@
+version: "1.0"
+name: "nezora"
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: CHANGE_ME
+      MARIADB_DATABASE: nezora
+      MARIADB_USER: nezor
+      MARIADB_PASSWORD: CHANGE_ME
+  backend:
+    depends_on:
+      - db
+    build: .
+    restart: always
+    ports:
+      - "8001:3001"
+    environment:
+      GO_DB_HOST: db:3306
+      MARIADB_DATABASE: nezora
+      MARIADB_USER: root
+      MARIADB_PASSWORD: CHANGE_ME
+  web:
+    depends_on:
+      - backend
+    build: ../frontend/
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_BACKENDHOST: 127.0.0.1:8001
