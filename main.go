@@ -1,34 +1,35 @@
 package main
 
 import (
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/nezor-dev/nezora/backend/initializers"
-	"github.com/nezor-dev/nezora/backend/models"
-	"github.com/nezor-dev/nezora/backend/routes"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/nezor-dev/nezora/backend/pkg/configs"
+	"github.com/nezor-dev/nezora/backend/pkg/routes"
+	"github.com/nezor-dev/nezora/backend/pkg/utils"
+	"github.com/nezor-dev/nezora/backend/platform/database"
 )
 
 func init() {
-	initializers.LoadEnvVariables()
-	initializers.ConnectToDb()
+	database.ConnectToDb()
 }
 
 func main() {
-	app := fiber.New()
+	// Define Fiber config.
+	config := configs.FiberConfig()
 
-	initializers.DB.AutoMigrate(&models.Bookmark{})
-	initializers.DB.AutoMigrate(&models.Document{})
+	// Define a new Fiber app with config.
+	app := fiber.New(config)
 
-	app.Use(cors.New(cors.Config{
-		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
-		AllowOrigins:     "*",
-		AllowCredentials: true,
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
-	}))
+	// configure cors
+	app.Use(cors.New(configs.CorsConfig()))
 
-	routes.LoadRoutes(app)
+	// Routes.
+	routes.SwaggerRoute(app)  // Register a route for API Docs (Swagger).
+	routes.PublicRoutes(app)  // Register a public routes for app.
+	routes.PrivateRoutes(app) // Register a private routes for app.
+	routes.NotFoundRoute(app) // Register route for 404 Error.
 
-	app.Listen(":" + os.Getenv("PORT"))
+	// Start server (with graceful shutdown).
+	utils.StartServerWithGracefulShutdown(app)
 }

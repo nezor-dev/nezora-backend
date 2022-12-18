@@ -19,7 +19,7 @@ services:
     environment:
       GO_DB_HOST: db:3306
       MARIADB_DATABASE: nezora
-      MARIADB_USER: root
+      MARIADB_USER: nezor
       MARIADB_PASSWORD: CHANGE_ME
   web:
     depends_on:
@@ -28,4 +28,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      REACT_APP_BACKENDHOST: 127.0.0.1:8001
+      REACT_APP_BACKENDHOST: 127.0.0.1:8001/api/v1
+     
+networks:
+   dev-network:
+        external: true
+      
+volumes:
+    db_data:
+    db_conf:

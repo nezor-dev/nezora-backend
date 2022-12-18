@@ -1,15 +1,28 @@
-FROM golang:1.20rc1-alpine3.16
+FROM golang:1.20rc1-alpine3.16 AS builder
 
-WORKDIR /usr/src/app
+WORKDIR /build
 
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+# Move to working directory (/build).
+WORKDIR /build
+
+# Copy and download dependency using go mod.
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
+RUN go mod download
 
+# Copy the code into the container.
 COPY . .
 
-RUN go build -o ./backend
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+RUN go build -ldflags="-s -w" -o apiserver .
 
+FROM scratch
+
+# Copy binary and config files from /build 
+# to root folder of scratch container.
+COPY --from=builder ["/build/apiserver", "/build/.env", "/"]
+
+# Export necessary port.
 EXPOSE 3001
 
-CMD ["./backend"]
+# Command to run when starting the container.
+ENTRYPOINT ["/apiserver"]
