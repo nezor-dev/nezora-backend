@@ -17,4 +17,8 @@ func PublicRoutes(a *fiber.App) {
 	route.Get("/mails", controllers.GetAllMail) // get list of all mails
 	route.Get("/mail/:id", controllers.GetMail) // get one mail by ID
 
+	route.Post("/auth/login", controllers.Login)       // login
+	route.Post("/auth/register", controllers.Register) // register
+	route.Get("/user", controllers.User)               // user
+	route.Get("/auth/logout", controllers.Logout)      //logout
 }

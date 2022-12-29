@@ -9,30 +9,18 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
-
-	"github.com/otiai10/gosseract/v2"
-	"github.com/pdfcpu/pdfcpu/pkg/api"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 )
-
-var fileext = []string{"jpg", "png"}
 
 func toBase64(b []byte) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func ConvertImageToPDF_BASE64(input []string) string {
+func ConvertImageToPDF_BASE64() string {
 	// Read the entire file into a byte slice
-	imp, _ := api.Import("form:A3, pos:c, s:1.0", pdfcpu.POINTS)
-	api.ImportImagesFile(input, "out.pdf", imp, nil)
-
-	// Read the entire file into a byte slice
-	bytes, err := ioutil.ReadFile("./out.pdf")
+	bytes, err := ioutil.ReadFile("./scan.pdf")
 	if err != nil {
 		log.Fatal(err)
 	}
-	os.Remove("./out.pdf")
 
 	var base64Encoding string
 
@@ -55,7 +43,6 @@ func ConvertImageToPDF_BASE64(input []string) string {
 
 	// Print the full base64 representation of the image
 	return base64Encoding
-
 }
 
 func main() {
@@ -65,16 +52,18 @@ func main() {
 	name := args[0]
 	date := args[1]
 	sender := args[2]
-	content := ""
+
+	content, err := ioutil.ReadFile("./output.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	base64 := getBase64ofFolderImages_PDF()
-
-	content = getContentFromCurrentFolder(content)
 
 	values := map[string]string{
 		"name":    name,
 		"image":   base64,
-		"content": content,
+		"content": string(content),
 		"date":    date,
 		"sender":  sender,
 	}
@@ -85,7 +74,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	resp, err := http.Post("http://127.0.0.1:8001/documents", "application/json",
+	resp, err := http.Post("http://127.0.0.1:8001/api/v1/mail", "application/json",
 		bytes.NewBuffer(json_data))
 
 	if err != nil {
@@ -96,58 +85,27 @@ func main() {
 
 	json.NewDecoder(resp.Body).Decode(&res)
 
-	fmt.Println(name)
-	fmt.Println(content)
-	fmt.Println(date)
-	fmt.Println(sender)
+	fmt.Println(resp)
 
+	cleanUpFiles()
 }
 
 func getBase64ofFolderImages_PDF() string {
-	var strArray []string
-
-	strArray = append(strArray, extractFileNamesFromCurrentFolder(fileext)...)
-
-	var base64 = ConvertImageToPDF_BASE64(strArray)
+	var base64 = ConvertImageToPDF_BASE64()
 	return base64
 }
 
-func getContentFromCurrentFolder(content string) string {
-	client := gosseract.NewClient()
-	defer client.Close()
-
-	for _, file := range extractFileNamesFromCurrentFolder(fileext) {
-		client.SetImage(file)
-		image, _ := client.Text()
-		content = content + image
+func cleanUpFiles() {
+	e := os.Remove("output.txt")
+	if e != nil {
+		log.Fatal(e)
 	}
-	return content
-}
-
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
+	e = os.Remove("scan.pdf")
+	if e != nil {
+		log.Fatal(e)
 	}
-
-	return false
-}
-
-func extractFileNamesFromCurrentFolder(file []string) []string {
-	var strArray []string
-
-	files, err := ioutil.ReadDir("./")
-	if err != nil {
-		log.Fatal(err)
+	e = os.Remove("*.tiff")
+	if e != nil {
+		log.Fatal(e)
 	}
-
-	for _, f := range files {
-		fmt.Println(f.Name())
-		split := strings.Split(f.Name(), ".")
-		if contains(file, split[len(split)-1]) {
-			strArray = append(strArray, f.Name())
-		}
-	}
-	return strArray
 }

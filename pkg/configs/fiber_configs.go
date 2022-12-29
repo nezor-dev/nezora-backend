@@ -6,7 +6,9 @@ import (
 )
 
 func FiberConfig() fiber.Config {
-	return fiber.Config{}
+	return fiber.Config{
+		BodyLimit: 64 * 1024 * 1024, // this is the default limit of 64MB
+	}
 }
 
 func CorsConfig() cors.Config {

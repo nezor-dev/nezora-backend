@@ -30,15 +30,15 @@ func GetMail(c *fiber.Ctx) error {
 }
 
 func GetAllMail(c *fiber.Ctx) error {
-	var mails []models.Mail
+	var mail []models.Mail
 
-	database.DB.Find(&mails)
+	database.DB.Find(&mail)
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   nil,
-		"count": len(mails),
-		"data":  mails,
+		"count": len(mail),
+		"data":  mail,
 	})
 }
 

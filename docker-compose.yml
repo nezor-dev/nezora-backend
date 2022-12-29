@@ -3,12 +3,18 @@ name: "nezora"
 services:
   db:
     image: mariadb
-    restart: always
     environment:
       MARIADB_ROOT_PASSWORD: CHANGE_ME
       MARIADB_DATABASE: nezora
       MARIADB_USER: nezor
       MARIADB_PASSWORD: CHANGE_ME
+    command: --max_allowed_packet=64000000      # Set max_allowed_packet to 64M (or any other value)
+    restart: always
+    ports:
+      - "3306:3306"      
+    volumes:
+      - db_data:/var/lib/mysql
+      - db_conf:/etc/mysql
   backend:
     depends_on:
       - db

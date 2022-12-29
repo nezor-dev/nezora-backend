@@ -13,4 +13,5 @@ func init() {
 func main() {
 	database.DB.AutoMigrate(&models.Bookmark{})
 	database.DB.AutoMigrate(&models.Mail{})
+	database.DB.AutoMigrate(&models.User{})
 }

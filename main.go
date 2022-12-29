@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/nezor-dev/nezora/backend/app/models"
 	"github.com/nezor-dev/nezora/backend/pkg/configs"
 	"github.com/nezor-dev/nezora/backend/pkg/routes"
 	"github.com/nezor-dev/nezora/backend/pkg/utils"
@@ -12,6 +13,10 @@ import (
 
 func init() {
 	database.ConnectToDb()
+
+	database.DB.AutoMigrate(&models.Bookmark{})
+	database.DB.AutoMigrate(&models.Mail{})
+	database.DB.AutoMigrate(&models.User{})
 }
 
 func main() {
